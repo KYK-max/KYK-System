@@ -1,4 +1,4 @@
-const C='kyk-v101';
+const C='kyk-v131';
 const A=['./','./index.html','./css/style.css','./js/app.js','./js/jszip.min.js','./manifest.json','./version.json'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith('kyk-')&&x!==C).map(x=>caches.delete(x))))])));
