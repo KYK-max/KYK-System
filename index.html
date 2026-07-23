@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#176b45"><title>KYK管理システム Version 0.3.5</title>
+<meta name="theme-color" content="#176b45"><title>KYK管理システム Version 1.0.0</title>
 <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header class="app-header"><div><h1>KYK管理システム <small>v0.3.5</small></h1><small id="dbStatus">KYKDB.xlsx 自動読込中</small></div><button class="sub" id="btnDb">KYKDB再読込</button><input id="dbFile" type="file" accept=".xlsx" hidden></header>
+<header class="app-header"><div><h1>KYK管理システム <small>v1.0.1</small></h1><small id="dbStatus">KYKDB.xlsx 読込中</small></div><button class="sub" id="btnDb">KYKDB再読込</button><input id="dbFile" type="file" accept=".xlsx" hidden></header>
 <main id="app">
-<section id="screen-top" class="screen active"><div class="hero"><h2>メニュー</h2><p id="dbGuide">起動時にGitHub上のKYKDB.xlsxを自動で読み込みます。通信できない場合は端末に保存済みのデータを使用します。</p></div><div class="menu-grid"><button data-go="basic" id="btnNewRecord" class="primary">新規作成</button><button data-go="saved">保存済一覧</button><button data-go="approval">元請確認</button></div></section>
+<section id="screen-top" class="screen active"><div class="hero"><h2>メニュー</h2><p id="dbGuide">KYKDBはシステム内に組み込まれています。システムを更新すると、同梱された最新のKYKDBが自動で反映されます。KYKDBだけを手動で更新した場合は、右上の「KYKDB再読込」を押してファイルを選択してください。</p></div><div class="menu-grid"><button data-go="basic" id="btnNewRecord" class="primary">新規作成</button><button data-go="saved">保存済一覧</button><button data-go="approval">元請確認</button></div></section>
 <section id="screen-basic" class="screen"><div class="screen-title"><button class="back" data-go="top">←</button><h2>基本情報</h2></div><div class="card form-grid"><label class="required">作業日<input id="workDate" type="date"></label><label class="required">現場名<select id="site"></select></label><label class="required">会社名<select id="company"></select></label></div><div class="card previous-copy"><button type="button" id="btnCopyPrevious">前回内容をコピー</button><div><strong>同一現場・同一会社の直近データ</strong><small id="copyPreviousInfo">現場名と会社名を選択して実行してください。</small></div></div><div class="card"><div class="label-title required-text">作成者（手書きサイン）</div><canvas class="sign-pad square-sign-pad" id="creatorPad"></canvas><div class="sign-actions"><button type="button" id="clearCreator">書き直す</button><span id="creatorSignStatus">未署名</span></div></div><div class="actions"><button class="primary" data-go="work">作業内容へ</button></div></section>
 <section id="screen-work" class="screen"><div class="screen-title"><button class="back" data-go="basic">←</button><h2>作業内容</h2></div><div class="work-nav card"><button id="prevWork">← 前へ</button><strong id="workIndicator">作業 1／1</strong><button id="nextWork">次へ →</button></div><div id="workRows"></div><div class="actions split"><button id="addWork">＋ 作業を追加</button><button id="removeWork" class="danger">この作業を削除</button></div><div class="card"><label>職長から（72文字以内）<textarea id="foremanComment" maxlength="72" rows="4"></textarea></label><div class="counter"><span id="foremanCount">0</span>/72</div></div><div class="actions"><button class="primary" data-go="checks">点検項目へ</button></div></section>
 <section id="screen-checks" class="screen"><div class="screen-title"><button class="back" data-go="work">←</button><h2>点検項目</h2></div><div class="card check-grid"><label><input id="checkScaffold" type="checkbox"> 足場点検</label><label><input id="checkTools" type="checkbox"> 工具点検</label><label><input id="checkClothes" type="checkbox"> 服装点検</label><label><input id="checkPpe" type="checkbox"> 保護具点検</label></div><div class="actions"><button class="primary" data-go="workers">作業員入力へ</button></div></section>
@@ -17,5 +17,14 @@
 <section id="screen-approval" class="screen"><div class="screen-title"><button class="back" data-go="top">←</button><h2>元請確認</h2></div><div class="card"><label>現場名<select id="approvalSite"></select></label><label class="inline"><input id="includeApproved" type="checkbox"> 確認済みも表示</label></div><div id="approvalList"></div></section>
 <section id="screen-approve-detail" class="screen"><div class="screen-title"><button class="back" data-go="approval">←</button><h2>元請確認入力</h2></div><div id="approvalSummary" class="card"></div><div class="card"><label>元請から（72文字以内）<textarea id="principalComment" maxlength="72" rows="4"></textarea></label><div class="counter"><span id="principalCount">0</span>/72</div><div class="label-title required-text">元請確認（手書きサイン）</div><canvas class="sign-pad square-sign-pad" id="principalPad"></canvas><div class="sign-actions"><button type="button" id="clearPrincipal">書き直す</button><span id="principalSignStatus">未署名</span></div></div><div class="actions"><button class="primary" id="btnApprove">確認して保存</button></div></section>
 </main><div id="toast" role="status"></div>
+<div id="updateModal" class="update-modal" hidden>
+  <div class="update-dialog" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+    <h2 id="updateTitle">新しいバージョンがあります</h2>
+    <p><strong>現在：</strong><span id="currentVersionText"></span><br><strong>最新：</strong><span id="latestVersionText"></span></p>
+    <div class="release-notes"><strong>更新内容</strong><ul id="releaseNotesList"></ul></div>
+    <p class="update-note">更新前に保存済みKYデータを専用領域へ安全バックアップします。アプリ本体とキャッシュだけを更新し、KYデータには触れません。<br>「後で」を選んだ場合も、次回起動時に再度お知らせします。</p>
+    <div class="update-actions"><button id="btnUpdateLater">後で</button><button id="btnUpdateNow" class="primary">更新する</button></div>
+  </div>
+</div>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script><script src="js/jszip.min.js"></script><script src="js/app.js"></script>
 </body></html>

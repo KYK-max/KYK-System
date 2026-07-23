@@ -2,15 +2,19 @@
 
 .bulk-export{display:flex;align-items:center;justify-content:space-between;gap:12px}.bulk-export button{max-width:320px}@media(max-width:640px){.bulk-export{align-items:stretch;flex-direction:column}.bulk-export button{max-width:none}}
 
-.square-sign-pad{width:min(100%,2.43cm);height:2.17cm;aspect-ratio:auto}.worker-sign-pad{width:min(100%,6.09cm);height:1.16cm;aspect-ratio:auto}.worker-card .worker-grid>div:first-child{min-width:6.09cm}
+.square-sign-pad{width:min(100%,4.86cm);height:auto;aspect-ratio:243/217}.worker-sign-pad{width:min(100%,10.96cm);height:auto;aspect-ratio:609/116}.worker-card .worker-grid>div:first-child{min-width:min(100%,10.96cm)}
 
 /* v0.3.1: 未入力の必須項目を薄い黄色で表示 */
 input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd58}
 
-@media(max-width:650px){.square-sign-pad{width:min(100%,2.43cm);height:2.17cm}.worker-sign-pad{width:min(100%,6.09cm);height:1.16cm}.worker-card .worker-grid>div:first-child{min-width:0}}
+@media(max-width:650px){.square-sign-pad{width:min(100%,4.86cm);height:auto;aspect-ratio:243/217}.worker-sign-pad{width:100%;height:auto;aspect-ratio:609/116}.worker-card .worker-grid>div:first-child{min-width:0}}
 
 /* v0.3.4: 前回内容コピー */
 .previous-copy{display:flex;align-items:center;gap:14px}.previous-copy button{flex:0 0 auto;background:#176b45;color:#fff}.previous-copy small{display:block;margin-top:4px;color:#58675f}@media(max-width:650px){.previous-copy{align-items:stretch;flex-direction:column}}
 
 /* v0.3.5: 保存済み一覧の一括削除 */
 .bulk-delete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}.bulk-delete button{max-width:320px}.bulk-delete .meta{margin-top:4px;color:#58675f}.bulk-delete button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:640px){.bulk-delete{align-items:stretch;flex-direction:column}.bulk-delete button{max-width:none}}
+
+/* v1.0.0: 更新通知 */
+.update-modal{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px}
+.update-modal[hidden]{display:none}.update-dialog{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 12px 40px #0005}.update-dialog h2{margin-top:0}.release-notes{background:#eef3f0;border-radius:12px;padding:13px}.release-notes ul{margin:8px 0 0;padding-left:1.4em}.update-note{font-size:14px;color:#58675f}.update-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:18px}.update-actions button{min-width:110px}

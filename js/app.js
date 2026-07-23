@@ -1,14 +1,45 @@
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const APP_VERSION='1.0.1';
 const STORE='kyk_records_v02', IDB='kyk_app_v02', IDB_STORE='files', DB_KEY='kykdb';
+const DATA_VAULT_DB='kyk_data_v1', DATA_VAULT_STORE='safety', DATA_MIRROR_KEY='records_mirror', DATA_SNAPSHOT_KEY='pre_update_snapshot';
 let master={sites:[],companies:[],companyAliases:{},possibilities:[],severities:[],health:[],qualifications:[],qualAbbr:{},checks:['□','☑'],mapping:{},templateBuffer:null,fileName:'',loadedAt:''};
 let editingId=null,approvingId=null,currentWork=0,activeWorkCount=1,creatorSign='',principalSign='',principalCommentDraft='',workerSigns=Array(8).fill(''),workerPads=[];
 const CANON=['現場名','作業日','会社名','作成者','元請確認',...[1,2,3,4].flatMap(i=>['作業内容'+i,'予定人員'+i,'実施人員'+i,'危険性'+i,'可能性'+i,'重大性'+i,'総合点'+i,'対策'+i,'作業責任者'+i]),...[1,2,3,4].map(i=>'職長から'+i),...[1,2,3,4].map(i=>'元請から'+i),...[1,2,3,4,5,6,7,8].flatMap(i=>['体調'+i,'資格'+i,'作業員'+i]),'足場点検','工具点検','服装点検','保護具点検'];
 function canonical(s){s=String(s||'').replace(/\s/g,'');return CANON.find(x=>s.startsWith(x))||String(s||'').trim()}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function records(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch{return []}}
-function saveRecords(v){localStorage.setItem(STORE,JSON.stringify(v))}
+function readLocalRecords(){
+ const raw=localStorage.getItem(STORE);
+ if(raw===null)return {ok:true,exists:false,value:[]};
+ try{const value=JSON.parse(raw);return {ok:Array.isArray(value),exists:true,value:Array.isArray(value)?value:[]}}catch{return {ok:false,exists:true,value:[]}}
+}
+function records(){return readLocalRecords().value}
+function openDataVault(){return new Promise((res,rej)=>{const r=indexedDB.open(DATA_VAULT_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(DATA_VAULT_STORE))r.result.createObjectStore(DATA_VAULT_STORE)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function vaultPut(key,value){const db=await openDataVault();return new Promise((res,rej)=>{const tx=db.transaction(DATA_VAULT_STORE,'readwrite');tx.objectStore(DATA_VAULT_STORE).put(value,key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function vaultGet(key){const db=await openDataVault();return new Promise((res,rej)=>{const r=db.transaction(DATA_VAULT_STORE).objectStore(DATA_VAULT_STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function mirrorRecords(v,reason='save'){vaultPut(DATA_MIRROR_KEY,{records:v,updatedAt:new Date().toISOString(),appVersion:APP_VERSION,reason}).catch(e=>console.warn('KYデータの安全バックアップに失敗しました',e))}
+function saveRecords(v){localStorage.setItem(STORE,JSON.stringify(v));mirrorRecords(v)}
+async function ensureRecordSafety(){
+ const local=readLocalRecords();
+ try{
+  const mirror=await vaultGet(DATA_MIRROR_KEY);
+  if((!local.ok||!local.exists)&&Array.isArray(mirror?.records)){
+   localStorage.setItem(STORE,JSON.stringify(mirror.records));
+   toast(`安全バックアップからKYデータ${mirror.records.length}件を復元しました`);
+   return;
+  }
+  if(local.ok)await vaultPut(DATA_MIRROR_KEY,{records:local.value,updatedAt:new Date().toISOString(),appVersion:APP_VERSION,reason:'startup-sync'});
+ }catch(e){console.warn('KYデータ安全確認に失敗しました',e)}
+}
+async function createPreUpdateSnapshot(){
+ const local=readLocalRecords();
+ if(!local.ok)throw new Error('保存済みKYデータを確認できません。更新を中止しました。');
+ const snapshot={records:local.value,createdAt:new Date().toISOString(),fromVersion:APP_VERSION,count:local.value.length};
+ await vaultPut(DATA_SNAPSHOT_KEY,snapshot);
+ await vaultPut(DATA_MIRROR_KEY,{records:local.value,updatedAt:snapshot.createdAt,appVersion:APP_VERSION,reason:'pre-update'});
+ return snapshot;
+}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB,1);r.onupgradeneeded=()=>r.result.createObjectStore(IDB_STORE);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
@@ -26,16 +57,37 @@ function buildRows(){
 }
 function showWork(idx){currentWork=Math.max(0,Math.min(idx,activeWorkCount-1));[1,2,3,4].forEach(i=>$('#workCard'+i).hidden=i!==currentWork+1);$('#workIndicator').textContent=`作業 ${currentWork+1}／${activeWorkCount}`;$('#prevWork').disabled=currentWork===0;$('#nextWork').disabled=currentWork===activeWorkCount-1;$('#addWork').disabled=activeWorkCount>=4;$('#removeWork').hidden=activeWorkCount===1}
 function parseDB(wb){const ws=wb.Sheets.DB;if(!ws)throw new Error('DBシートがありません');const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false});const mapping={};rows.slice(1).forEach(r=>{if(r[1]&&r[2])mapping[canonical(r[1])] = {cell:String(r[2]).trim(),condition:r[3],required:String(r[4]||'').startsWith('必須'),copy:String(r[5]||'').startsWith('○'),search:String(r[6]||'').startsWith('○')}});const unique=col=>[...new Set(rows.slice(1).map(r=>r[col]).filter(v=>v!==null&&String(v).trim()).map(v=>String(v).trim()))];const companies=unique(8),aliases=unique(9),companyAliases={};companies.forEach((c,i)=>companyAliases[c]=aliases[i]||c);const qualifications=unique(13),abbr=unique(14),qualAbbr={};qualifications.forEach((q,i)=>qualAbbr[q]=abbr[i]||q);return{sites:unique(7),companies,companyAliases,possibilities:unique(10),severities:unique(11),health:unique(12),qualifications,qualAbbr,checks:unique(15).length?unique(15):['□','☑'],mapping}}
-async function loadBuffer(buf,name,save=true){if(!window.XLSX)throw new Error('Excel処理ライブラリを読み込めません。インターネット接続を確認してください');const wb=XLSX.read(buf,{type:'array',cellDates:true});if(!wb.SheetNames.includes('KYK'))throw new Error('KYKシートがありません');const parsed=parseDB(wb);Object.assign(master,parsed,{templateBuffer:buf.slice(0),fileName:name,loadedAt:new Date().toISOString()});if(save)await idbPut({buffer:buf.slice(0),name,loadedAt:master.loadedAt});updateDbStatus();hydrateMasters();toast(save?'KYKDBを保存して読み込みました':'保存済みKYKDBを復元しました')}
-async function loadFile(file){if(!file)return;await loadBuffer(await file.arrayBuffer(),file.name,true)}
-async function loadRemoteDB(showMessage=true){
- if(location.protocol==='file:')throw new Error('公開URLから開いた場合のみ自動読込できます');
- const url=new URL('KYKDB.xlsx',location.href);url.searchParams.set('_',Date.now());
- const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error(`KYKDB.xlsxを取得できません（${res.status}）`);
- await loadBuffer(await res.arrayBuffer(),'KYKDB.xlsx',true);
- if(showMessage)toast('GitHub上の最新KYKDBを読み込みました');
+async function loadBuffer(buf,name,save=true,source='manual'){if(!window.XLSX)throw new Error('Excel処理ライブラリを読み込めません。インターネット接続を確認してください');const wb=XLSX.read(buf,{type:'array',cellDates:true});if(!wb.SheetNames.includes('KYK'))throw new Error('KYKシートがありません');const parsed=parseDB(wb);Object.assign(master,parsed,{templateBuffer:buf.slice(0),fileName:name,loadedAt:new Date().toISOString()});if(save)await idbPut({buffer:buf.slice(0),name,loadedAt:master.loadedAt,appVersion:APP_VERSION,source});updateDbStatus();hydrateMasters();toast(source==='manual'?'KYKDBを保存して読み込みました':source==='bundled'?'システム同梱のKYKDBを読み込みました':'保存済みKYKDBを復元しました')}
+async function loadFile(file){if(!file)return;await loadBuffer(await file.arrayBuffer(),file.name,true,'manual')}
+async function loadBundledDB(){
+ if(location.protocol==='file:')throw new Error('公開URLから開いた場合のみ同梱KYKDBを取得できます');
+ const url=new URL('KYKDB.xlsx',location.href);url.searchParams.set('app',APP_VERSION);url.searchParams.set('_',Date.now());
+ const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error(`同梱KYKDB.xlsxを取得できません（${res.status}）`);
+ await loadBuffer(await res.arrayBuffer(),'KYKDB.xlsx',true,'bundled');
 }
-function updateDbStatus(){if(!master.templateBuffer)return;const d=new Date(master.loadedAt);$('#dbStatus').textContent=`${master.fileName} 読込済み（会社${master.companies.length}件・更新 ${d.toLocaleString('ja-JP')}）`;$('#btnDb').textContent='KYKDB再読込';$('#dbGuide').textContent='起動時にGitHub上のKYKDB.xlsxを自動確認し、最新版を読み込みます。通信できない場合は端末に保存済みのKYKDBを使用します。'}
+function updateDbStatus(){if(!master.templateBuffer)return;const d=new Date(master.loadedAt);$('#dbStatus').textContent=`${master.fileName} 読込済み（会社${master.companies.length}件・更新 ${d.toLocaleString('ja-JP')}）`;$('#btnDb').textContent='KYKDB再読込';$('#dbGuide').textContent='KYKDBはシステム内に組み込まれています。システムを更新すると、同梱された最新のKYKDBが自動で反映されます。KYKDBだけを手動で更新した場合は、右上の「KYKDB再読込」を押してファイルを選択してください。'}
+function compareVersions(a,b){const pa=String(a).split('.').map(Number),pb=String(b).split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const x=pa[i]||0,y=pb[i]||0;if(x!==y)return x-y}return 0}
+async function checkForAppUpdate(){
+ if(location.protocol==='file:')return;
+ try{
+  const url=new URL('version.json',location.href);url.searchParams.set('_',Date.now());
+  const res=await fetch(url,{cache:'no-store'});if(!res.ok)return;
+  const info=await res.json();if(!info.version||compareVersions(info.version,APP_VERSION)<=0)return;
+  $('#currentVersionText').textContent=`v${APP_VERSION}`;$('#latestVersionText').textContent=`v${info.version}`;
+  const notes=Array.isArray(info.notes)?info.notes:['機能改善と不具合修正'];$('#releaseNotesList').innerHTML=notes.map(x=>`<li>${esc(x)}</li>`).join('');
+  $('#updateModal').hidden=false;
+ }catch(e){console.warn('更新確認に失敗しました',e)}
+}
+async function applyAppUpdate(){
+ const btn=$('#btnUpdateNow');btn.disabled=true;btn.textContent='安全確認中…';
+ try{
+  const snapshot=await createPreUpdateSnapshot();
+  btn.textContent=`KYデータ${snapshot.count}件を保護・更新中…`;
+  if('serviceWorker'in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update();if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});else if(reg.installing)await new Promise(resolve=>{reg.installing.addEventListener('statechange',()=>{if(reg.installing?.state==='installed'){reg.waiting?.postMessage({type:'SKIP_WAITING'});resolve()}});setTimeout(resolve,5000)})}}
+  // キャッシュ削除は新しいService Workerのactivate処理に限定する。KYデータ保存領域には触れない。
+  const u=new URL(location.href);u.searchParams.set('updated',Date.now());location.replace(u.toString());
+ }catch(e){console.error(e);btn.disabled=false;btn.textContent='更新する';toast('更新に失敗しました。通信状態を確認してください')}
+}
 function setupPad(canvas,status,clearBtn,onChange,lineWidth=2.2){
  let drawing=false,has=false,moved=false,last={x:0,y:0},savedImage='';
  const ctx=canvas.getContext('2d');
@@ -310,4 +362,4 @@ function relativePartTarget(fromPath,toPath){
 async function exportRecord(id){try{const d=records().find(x=>x.id===id);if(d)await exportRecords([d],`${d.site}_${d.companyAlias||d.company}_${d.date}`)}catch(e){console.error(e);toast('Excel出力に失敗しました：'+e.message)}}
 async function exportBulk(){try{const list=filteredSavedRecords();if(!list.length){toast('出力対象がありません');return}const sites=[...new Set(list.map(x=>x.site))];if(sites.length!==1){toast('現場名を1つ選択してから一括出力してください');return}await exportRecords(list,sites[0])}catch(e){console.error(e);toast('一括Excel出力に失敗しました：'+e.message)}}
 window.editRecord=id=>{const d=records().find(x=>x.id===id);if(d)fill(d)};window.openApproval=openApproval;window.exportRecord=exportRecord;
-document.addEventListener('DOMContentLoaded',async()=>{buildRows();creatorPad=setupPad($('#creatorPad'),$('#creatorSignStatus'),$('#clearCreator'),v=>creatorSign=v,2.2);workerPads=[1,2,3,4,5,6,7,8].map(i=>setupPad($('#workerPad'+i),$('#workerSignStatus'+i),$('#clearWorker'+i),v=>workerSigns[i-1]=v,2.2));principalPad=setupPad($('#principalPad'),$('#principalSignStatus'),$('#clearPrincipal'),v=>principalSign=v,2.2);hydrateMasters();resetForm();['#workDate','#site','#company'].forEach(sel=>{$(sel).addEventListener('input',()=>{updateRequiredHighlights();updatePreviousCopyInfo()});$(sel).addEventListener('change',()=>{updateRequiredHighlights();updatePreviousCopyInfo()})});$$('[data-go]').forEach(b=>b.onclick=()=>{const t=b.dataset.go;if(!master.templateBuffer&&!['top','saved','approval'].includes(t)){toast('先にKYKDBを読み込んでください');return}if(b.id==='btnNewRecord')editingId=null;go(t)});$('#btnDb').onclick=async()=>{try{await loadRemoteDB(true)}catch(err){console.error(err);toast('自動取得できません。端末内のKYKDBを選択してください');$('#dbFile').click()}};$('#dbFile').onchange=async e=>{try{await loadFile(e.target.files[0]);e.target.value=''}catch(err){console.error(err);toast(err.message)}};$('#btnSave').onclick=saveCurrent;$('#btnCopyPrevious').onclick=copyMarkedFieldsFromPrevious;$('#btnDelete').onclick=deleteCurrent;$('#btnApprove').onclick=approve;$('#searchSite').onchange=renderSaved;$('#searchCompany').onchange=renderSaved;$('#btnBulkExport').onclick=exportBulk;$('#btnBulkDelete').onclick=bulkDeleteSaved;$('#approvalSite').onchange=renderApproval;$('#includeApproved').onchange=renderApproval;$('#foremanComment').oninput=e=>$('#foremanCount').textContent=e.target.value.length;$('#principalComment').oninput=e=>$('#principalCount').textContent=e.target.value.length;$('#prevWork').onclick=()=>showWork(currentWork-1);$('#nextWork').onclick=()=>showWork(currentWork+1);$('#addWork').onclick=()=>{if(activeWorkCount<4){activeWorkCount++;showWork(activeWorkCount-1)}};$('#removeWork').onclick=()=>{if(activeWorkCount<=1)return;if(confirm(`作業${currentWork+1}を削除しますか？`)){for(let j=currentWork+1;j<activeWorkCount;j++){['work','planned','actual','danger','poss','sev','score','measure','leader'].forEach(k=>$('#'+k+j).value=$('#'+k+(j+1)).value)}activeWorkCount--;showWork(Math.min(currentWork,activeWorkCount-1))}};let remoteLoaded=false;try{await loadRemoteDB(false);remoteLoaded=true}catch(e){console.warn('KYKDB自動取得失敗',e)}if(!remoteLoaded){try{const saved=await idbGet();if(saved?.buffer)await loadBuffer(saved.buffer,saved.name,false);else toast('KYKDBを自動取得できません。右上の「KYKDB読込」から選択してください')}catch(e){console.warn(e)}}if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('service-worker.js').catch(console.warn)});
+document.addEventListener('DOMContentLoaded',async()=>{await ensureRecordSafety();buildRows();creatorPad=setupPad($('#creatorPad'),$('#creatorSignStatus'),$('#clearCreator'),v=>creatorSign=v,2.2);workerPads=[1,2,3,4,5,6,7,8].map(i=>setupPad($('#workerPad'+i),$('#workerSignStatus'+i),$('#clearWorker'+i),v=>workerSigns[i-1]=v,2.2));principalPad=setupPad($('#principalPad'),$('#principalSignStatus'),$('#clearPrincipal'),v=>principalSign=v,2.2);hydrateMasters();resetForm();['#workDate','#site','#company'].forEach(sel=>{$(sel).addEventListener('input',()=>{updateRequiredHighlights();updatePreviousCopyInfo()});$(sel).addEventListener('change',()=>{updateRequiredHighlights();updatePreviousCopyInfo()})});$$('[data-go]').forEach(b=>b.onclick=()=>{const t=b.dataset.go;if(!master.templateBuffer&&!['top','saved','approval'].includes(t)){toast('先にKYKDBを読み込んでください');return}if(b.id==='btnNewRecord')editingId=null;go(t)});$('#btnDb').onclick=()=>$('#dbFile').click();$('#dbFile').onchange=async e=>{try{await loadFile(e.target.files[0]);e.target.value=''}catch(err){console.error(err);toast(err.message)}};$('#btnSave').onclick=saveCurrent;$('#btnCopyPrevious').onclick=copyMarkedFieldsFromPrevious;$('#btnDelete').onclick=deleteCurrent;$('#btnApprove').onclick=approve;$('#searchSite').onchange=renderSaved;$('#searchCompany').onchange=renderSaved;$('#btnBulkExport').onclick=exportBulk;$('#btnBulkDelete').onclick=bulkDeleteSaved;$('#approvalSite').onchange=renderApproval;$('#includeApproved').onchange=renderApproval;$('#foremanComment').oninput=e=>$('#foremanCount').textContent=e.target.value.length;$('#principalComment').oninput=e=>$('#principalCount').textContent=e.target.value.length;$('#prevWork').onclick=()=>showWork(currentWork-1);$('#nextWork').onclick=()=>showWork(currentWork+1);$('#addWork').onclick=()=>{if(activeWorkCount<4){activeWorkCount++;showWork(activeWorkCount-1)}};$('#removeWork').onclick=()=>{if(activeWorkCount<=1)return;if(confirm(`作業${currentWork+1}を削除しますか？`)){for(let j=currentWork+1;j<activeWorkCount;j++){['work','planned','actual','danger','poss','sev','score','measure','leader'].forEach(k=>$('#'+k+j).value=$('#'+k+(j+1)).value)}activeWorkCount--;showWork(Math.min(currentWork,activeWorkCount-1))}};try{const saved=await idbGet();if(saved?.buffer&&saved.appVersion===APP_VERSION){await loadBuffer(saved.buffer,saved.name,false,saved.source||'saved')}else{try{await loadBundledDB()}catch(e){console.warn('同梱KYKDB読込失敗',e);if(saved?.buffer)await loadBuffer(saved.buffer,saved.name,false,saved.source||'saved');else toast('KYKDBを読み込めません。右上の「KYKDB再読込」から選択してください')}}}catch(e){console.warn(e)}if('serviceWorker'in navigator&&location.protocol!=='file:'){try{await navigator.serviceWorker.register('service-worker.js');navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn(e)}}$('#btnUpdateLater').onclick=()=>{$('#updateModal').hidden=true};$('#btnUpdateNow').onclick=applyAppUpdate;await checkForAppUpdate()});
