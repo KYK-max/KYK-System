@@ -45,3 +45,7 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
 @media(max-width:720px){.button-gap,.bulk-export-buttons{flex-direction:column;width:100%;gap:14px}.button-gap button,.bulk-export-buttons button{width:100%;min-width:0}.bulk-export-buttons{margin-top:8px}}
 /* Excel帳票を基準にしたPDF印刷ビュー */
 .workbook-print{font-family:"Yu Gothic",sans-serif}.workbook-sheet{break-after:page;page-break-after:always;padding:4mm}.workbook-sheet:last-child{break-after:auto;page-break-after:auto}.workbook-sheet table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:8px}.workbook-sheet td,.workbook-sheet th{border:1px solid #777;padding:2px;white-space:pre-wrap;overflow-wrap:anywhere;vertical-align:middle}.workbook-sheet h2{font-size:12px;margin:0 0 4px}
+
+/* v1.4.2: clear separation and status order */
+.status-summary{margin-top:28px;margin-bottom:28px}.status-summary h3{margin:0 0 12px}.status-summary .dashboard-grid{margin:0}.system-tools{margin-top:0}.menu-grid button,.row button,.actions button,.bulk-export-buttons button{margin:2px}.bulk-export-buttons{gap:18px}.record-card .row{gap:14px}.journal-card .row{gap:14px}
+@media(max-width:720px){.bulk-export-buttons{gap:16px}.record-card .row,.journal-card .row{gap:12px}}
