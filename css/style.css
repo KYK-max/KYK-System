@@ -70,3 +70,13 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
  .worker-sign-pad{width:100%;aspect-ratio:609/116}
  .worker-save-buttons #btnSave,#screen-approve-detail #btnApprove,#screen-journal-edit #btnJournalSave{min-width:260px}
 }
+
+
+/* v1.4.8: 戻る操作時の入力保持と作業入力欄のタッチ操作改善 */
+.work-grid{grid-template-columns:minmax(220px,1fr) 110px 110px}
+.work-card>label>input,.work-grid input,.work-grid select{min-height:64px;height:64px;font-size:21px;padding:12px 14px}
+.risk-grid .poss-select,.risk-grid .sev-select{min-height:64px;height:64px;font-size:21px;padding:12px 10px}
+@media(max-width:650px){
+ .work-grid{grid-template-columns:1fr}
+ .work-grid .num2 select{width:100%}
+}
