@@ -46,3 +46,27 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
 
 /* v1.4.6: 日誌自動作成画面の操作ボタン間隔 */
 .journal-create-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}.journal-create-actions button{margin:2px 0}@media(max-width:640px){.journal-create-actions{flex-direction:column}.journal-create-actions button{width:100%}}
+
+
+/* v1.4.7: タブレット実機操作性の改善 */
+#screen-basic .form-grid input,#screen-basic .form-grid select{min-height:68px;font-size:21px;padding:16px 14px}
+#screen-basic #workDate{min-width:300px}
+.worker-grid{grid-template-columns:minmax(0,1fr) 150px;align-items:start;gap:18px}
+.worker-sign-pad{width:min(100%,17.54cm);aspect-ratio:609/116}
+.worker-card .worker-grid>div:first-child{min-width:0}
+.worker-side-fields{display:grid;grid-template-columns:1fr;gap:14px}
+.worker-compact-select{min-height:64px;height:64px;padding:12px 10px;font-size:21px;text-align:center}
+.qualification-control{position:relative;margin-top:6px}
+.qualification-control .qual-select{margin-top:0;color:transparent;text-shadow:none}
+.qualification-control .qual-display{position:absolute;inset:2px;display:flex;align-items:center;justify-content:center;pointer-events:none;background:#fff;border-radius:8px;font-size:24px;font-weight:900;color:#163a29}
+.qualification-control:focus-within .qual-display{display:none}
+.worker-sign-area .sign-actions{justify-content:space-between}
+.worker-save-buttons #btnSave,#screen-approve-detail #btnApprove,#screen-journal-edit #btnJournalSave{min-width:300px;min-height:62px;font-size:21px}
+.journal-add-line{width:100%;min-height:52px;margin-top:9px;background:#dcebf8;color:#174b75;border:2px dashed #90b9e8}
+.journal-line[hidden]{display:none!important}
+@media(max-width:760px){
+ #screen-basic #workDate{min-width:0}
+ .worker-grid{grid-template-columns:minmax(0,1fr) 130px}
+ .worker-sign-pad{width:100%;aspect-ratio:609/116}
+ .worker-save-buttons #btnSave,#screen-approve-detail #btnApprove,#screen-journal-edit #btnJournalSave{min-width:260px}
+}
