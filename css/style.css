@@ -90,3 +90,5 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
 .health-control .health-select,.qualification-control .qual-select{margin-top:0;color:transparent;text-shadow:none}
 .health-control .health-display,.qualification-control .qual-display{position:absolute;inset:2px;display:flex;align-items:center;justify-content:center;pointer-events:none;background:#fff;border-radius:8px;font-size:24px;font-weight:900;color:#163a29}
 .health-control:focus-within .health-display,.qualification-control:focus-within .qual-display{display:none}
+
+.build-info{display:block;font-size:11px;line-height:1.35;opacity:.9;letter-spacing:.02em}
