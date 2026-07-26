@@ -1,4 +1,4 @@
-KYK Management System v1.5.0
+KYK Management System v1.5.1
 
 変更内容
 - v1.4.4のPDF除外、Excel出力のみの構成を維持しました。
@@ -29,7 +29,14 @@ v1.4.9 変更点
 - 総合点・点検チェック・体調表示の操作性と外観を調整
 
 
-v1.5.0 変更点
+v1.5.1 変更点
 - バージョン表示、APP_VERSION、version.json、Service Workerを1.5.0に統一
 - Build 2026-07-26 11:44 JSTを画面に表示
 - CSS・JavaScript等に?v=1.5.0を付与してキャッシュ更新を明確化
+
+
+【v1.5.1 変更点】
+・基本情報を3行固定、各入力欄を同寸法化
+・iPad Safari向けフォーム表示を調整
+・危険性欄を大型化し、評価欄を下段配置
+・Build 2026-07-26 11:55 JST

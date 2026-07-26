@@ -92,3 +92,59 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
 .health-control:focus-within .health-display,.qualification-control:focus-within .qual-display{display:none}
 
 .build-info{display:block;font-size:11px;line-height:1.35;opacity:.9;letter-spacing:.02em}
+
+
+/* v1.5.1: iPad向け基本情報3行固定・危険性ブロック大型化 */
+#screen-basic .form-grid{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ gap:18px;
+}
+#screen-basic .form-grid label{width:100%;min-width:0}
+#screen-basic .form-grid input,
+#screen-basic .form-grid select{
+ display:block;
+ width:100%;
+ min-width:0;
+ min-height:72px;
+ height:72px;
+ padding:14px 16px;
+ border:2px solid #c8d3cd;
+ border-radius:10px;
+ background:#fff;
+ font-size:21px;
+ line-height:1.25;
+ -webkit-appearance:none;
+ appearance:none;
+}
+#screen-basic .form-grid select{
+ background-image:linear-gradient(45deg,transparent 50%,#526159 50%),linear-gradient(135deg,#526159 50%,transparent 50%);
+ background-position:calc(100% - 22px) 31px,calc(100% - 15px) 31px;
+ background-size:7px 7px,7px 7px;
+ background-repeat:no-repeat;
+ padding-right:44px;
+}
+#screen-basic #workDate{min-width:0}
+
+.risk-grid{
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;
+ align-items:end;
+}
+.risk-grid>label:first-child{grid-column:1/-1}
+.risk-grid>label:first-child input{
+ min-height:64px;
+ height:64px;
+ font-size:21px;
+ padding:12px 14px;
+}
+.risk-grid .num2 select,
+.risk-grid .num2 input{
+ width:100%;
+ min-width:0;
+}
+.risk-grid .wide-select-panel{grid-column:1/-1}
+@media(max-width:650px){
+ .risk-grid{grid-template-columns:1fr}
+ .risk-grid>label:first-child,.risk-grid .wide-select-panel{grid-column:1}
+}

@@ -1,5 +1,5 @@
-const C='kyk-v150';
-const A=['./','./index.html','./css/style.css?v=1.5.0','./js/app.js?v=1.5.0','./js/jszip.min.js?v=1.5.0','./js/xlsx.full.min.js?v=1.5.0','./manifest.json?v=1.5.0','./version.json'];
+const C='kyk-v151';
+const A=['./','./index.html','./css/style.css?v=1.5.1','./js/app.js?v=1.5.1','./js/jszip.min.js?v=1.5.1','./js/xlsx.full.min.js?v=1.5.1','./manifest.json?v=1.5.1','./version.json'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith('kyk-')&&x!==C).map(x=>caches.delete(x))))])));
 self.addEventListener('message',e=>{if(e.data?.type==='SKIP_WAITING')self.skipWaiting()});

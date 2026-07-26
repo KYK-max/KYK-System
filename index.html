@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#176b45"><title>KYK管理システム Version 1.5.0</title>
-<link rel="manifest" href="manifest.json?v=1.5.0"><link rel="stylesheet" href="css/style.css?v=1.5.0">
+<meta name="theme-color" content="#176b45"><title>KYK管理システム Version 1.5.1</title>
+<link rel="manifest" href="manifest.json?v=1.5.1"><link rel="stylesheet" href="css/style.css?v=1.5.1">
 </head>
 <body>
-<header class="app-header"><div><h1>KYK管理システム <small>v1.5.0</small></h1><small class="build-info" id="buildInfo">Build 2026-07-26 11:44 JST</small><small id="dbStatus">KYKDB.xlsx 読込中</small></div><button class="sub" id="btnDb">KYKDB再読込</button><input id="dbFile" type="file" accept=".xlsx" hidden></header>
+<header class="app-header"><div><h1>KYK管理システム <small>v1.5.1</small></h1><small class="build-info" id="buildInfo">Build 2026-07-26 11:55 JST</small><small id="dbStatus">KYKDB.xlsx 読込中</small></div><button class="sub" id="btnDb">KYKDB再読込</button><input id="dbFile" type="file" accept=".xlsx" hidden></header>
 <main id="app">
 <section id="screen-top" class="screen active"><div class="hero"><h2>メニュー</h2><p id="dbGuide">KYKDBは右上の「KYKDB再読込」から手動で更新します。アプリ更新時も、端末に保存済みのKYKDBを引き継ぎます。</p></div><div class="management-grid"><div class="management-panel kyk-panel"><h2>KYK管理</h2><div class="menu-grid compact"><button data-go="basic" id="btnNewRecord" class="primary">新規作成</button><button data-go="approval">元請確認</button><button data-go="saved">保存済一覧</button></div></div><div class="management-panel journal-panel"><h2>日誌管理</h2><div class="menu-grid compact"><button data-go="journal-create" class="primary">自動作成</button><button data-go="journal-list">作成済み一覧</button></div></div></div><section class="status-section" aria-labelledby="statusTitle"><h3 id="statusTitle">件数・未処理状況</h3><div id="dashboard" class="dashboard-grid"></div></section><div class="system-tools card"><h3>システムバックアップ</h3><div class="menu-grid compact backup-buttons"><button id="btnBackupCreate">バックアップ作成</button><button id="btnBackupRestore">バックアップから復元</button><input id="backupFile" type="file" accept=".zip,application/zip" hidden></div></div></section>
 <section id="screen-basic" class="screen"><div class="screen-title"><button class="back" data-go="top">←</button><h2>基本情報</h2></div><div class="card form-grid"><label class="required">作業日<input id="workDate" type="date"></label><label class="required">現場名<select id="site"></select></label><label class="required">会社名<select id="company"></select></label></div><div class="card previous-copy"><button type="button" id="btnCopyPrevious">前回内容をコピー</button><div><strong>同一現場・同一会社の直近データ</strong><small id="copyPreviousInfo">現場名と会社名を選択して実行してください。</small></div></div><div class="card"><div class="label-title required-text">作成者（手書きサイン）</div><canvas class="sign-pad square-sign-pad" id="creatorPad"></canvas><div class="sign-actions"><button type="button" id="clearCreator">書き直す</button><span id="creatorSignStatus">未署名</span></div></div><div class="actions"><button class="primary" data-go="work">作業内容へ</button></div></section>
@@ -39,5 +39,5 @@
     <div class="update-actions" id="journalCopyActions"><button id="btnJournalCopyNo">いいえ</button><button id="btnJournalCopyChoose">別の日誌から選ぶ</button><button id="btnJournalCopyYes" class="primary">はい</button></div>
   </div>
 </div>
-<script src="js/xlsx.full.min.js?v=1.5.0"></script><script src="js/jszip.min.js?v=1.5.0"></script><script src="js/app.js?v=1.5.0"></script>
+<script src="js/xlsx.full.min.js?v=1.5.1"></script><script src="js/jszip.min.js?v=1.5.1"></script><script src="js/app.js?v=1.5.1"></script>
 </body></html>
