@@ -148,3 +148,6 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
  .risk-grid{grid-template-columns:1fr}
  .risk-grid>label:first-child,.risk-grid .wide-select-panel{grid-column:1}
 }
+
+/* 一括操作ボタンの無効状態を統一 */
+.bulk-export button:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.25)}
