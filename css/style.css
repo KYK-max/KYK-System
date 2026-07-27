@@ -151,3 +151,21 @@ input.required-empty,select.required-empty{background:#fff7cc;border-color:#d9bd
 
 /* 一括操作ボタンの無効状態を統一 */
 .bulk-export button:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.25)}
+
+
+/* v1.6.2: iPad date-label alignment and KYK date filtering */
+.journal-search-grid>label,.saved-search-grid>label{display:flex;flex-direction:column;align-items:stretch;min-width:0}
+.journal-search-grid>label>input,.journal-search-grid>label>select,.saved-search-grid>label>input,.saved-search-grid>label>select{display:block;width:100%;min-width:0;margin-top:6px}
+.saved-search-grid{display:grid;grid-template-columns:1.3fr 1.3fr 1fr 1fr auto;gap:12px;align-items:end}
+.saved-date-actions{display:flex;align-items:end}.saved-date-actions button{width:100%;min-height:50px}
+@media(max-width:900px){
+ .journal-search-grid{grid-template-columns:1.35fr 1fr 1fr auto}
+ .saved-search-grid{grid-template-columns:1fr 1fr}
+ .saved-search-grid>label:nth-child(1),.saved-search-grid>label:nth-child(2){grid-column:auto}
+ .saved-date-actions{align-self:end}
+}
+@media(max-width:640px){
+ .journal-search-grid,.saved-search-grid{grid-template-columns:1fr}
+ .journal-search-grid>label:first-child,.journal-missing-filter,.saved-search-grid>label{grid-column:1/-1}
+ .journal-date-actions,.saved-date-actions{grid-column:1/-1}
+}
