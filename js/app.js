@@ -2,8 +2,8 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function bindEvent(selector,event,handler){const el=$(selector);if(!el){console.warn('画面部品が見つからないため処理を省略しました:',selector,event);return false}el.addEventListener(event,handler);return true}
 function bindClick(selector,handler){return bindEvent(selector,'click',handler)}
-const APP_VERSION='1.6.4';
-const APP_BUILD='2026-07-28 20:06 JST';
+const APP_VERSION='1.6.5';
+const APP_BUILD='2026-08-01 19:10 JST';
 const STORE='kyk_records_v02', JOURNAL_STORE='kyk_journals_v01', IDB='kyk_app_v02', IDB_STORE='files', DB_KEY='kykdb';
 const DATA_VAULT_DB='kyk_data_v1', DATA_VAULT_STORE='safety', DATA_MIRROR_KEY='records_mirror', JOURNAL_MIRROR_KEY='journals_mirror', DATA_SNAPSHOT_KEY='pre_update_snapshot';
 let master={sites:[],siteAliases:{},companies:[],companyAliases:{},possibilities:[],severities:[],health:[],qualifications:[],qualAbbr:{},checks:['□','☑'],mapping:{},templateBuffer:null,fileName:'',loadedAt:''};
