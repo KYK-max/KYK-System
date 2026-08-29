@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function bindEvent(selector,event,handler){const el=$(selector);if(!el){console.warn('画面部品が見つからないため処理を省略しました:',selector,event);return false}el.addEventListener(event,handler);return true}
 function bindClick(selector,handler){return bindEvent(selector,'click',handler)}
 const APP_VERSION='1.6.6';
-const APP_BUILD='2026-08-01 19:33 JST';
+const APP_BUILD='2026-08-29 16:50 JST';
 const STORE='kyk_records_v02', JOURNAL_STORE='kyk_journals_v01', IDB='kyk_app_v02', IDB_STORE='files', DB_KEY='kykdb';
 const DATA_VAULT_DB='kyk_data_v1', DATA_VAULT_STORE='safety', DATA_MIRROR_KEY='records_mirror', JOURNAL_MIRROR_KEY='journals_mirror', DATA_SNAPSHOT_KEY='pre_update_snapshot';
 let master={sites:[],siteAliases:{},companies:[],companyAliases:{},possibilities:[],severities:[],health:[],qualifications:[],qualAbbr:{},checks:['□','☑'],mapping:{},templateBuffer:null,fileName:'',loadedAt:''};
@@ -55,7 +55,7 @@ function printAreaDefinedNames(sheetNames,area){return sheetNames.map((nm,i)=>`<
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB,1);r.onupgradeneeded=()=>r.result.createObjectStore(IDB_STORE);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 async function idbPut(v){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,DB_KEY);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
 async function idbGet(){const db=await openDB();return new Promise((res,rej)=>{const r=db.transaction(IDB_STORE).objectStore(IDB_STORE).get(DB_KEY);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function go(name){$$('.screen').forEach(x=>x.classList.remove('active'));const screen=$('#screen-'+name);if(!screen)return;screen.classList.add('active');scrollTo(0,0);if(name==='saved')renderSaved();if(name==='approval')renderApproval();if(name==='work')showWork(currentWork);if(name==='journal-create')renderJournalCandidates();if(name==='journal-list')renderJournalList();if(name==='top'){renderDashboard();}}
+function go(name){$$('.screen').forEach(x=>x.classList.remove('active'));const screen=$('#screen-'+name);if(!screen)return;screen.classList.add('active');scrollTo(0,0);if(name==='saved')renderSaved();if(name==='approval')renderApproval();if(name==='work')showWork(currentWork);if(name==='workers'){updateWorkerVisibility(actualWorkerCount());requestAnimationFrame(()=>requestAnimationFrame(()=>{const total=actualWorkerCount();for(let i=0;i<total;i++){workerPads[i]?.load(workerSigns[i]||'')}}))}if(name==='journal-create')renderJournalCandidates();if(name==='journal-list')renderJournalList();if(name==='top'){renderDashboard();}}
 function selectOptions(el,values,blank='選択してください'){const cur=el.value;el.innerHTML=`<option value="">${blank}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(values.includes(cur))el.value=cur}
 function updateRequiredHighlights(){['#workDate','#site','#company'].forEach(sel=>{const el=$(sel);if(el)el.classList.toggle('required-empty',!String(el.value||'').trim())})}
 function updateQualificationDisplay(i){const sel=$('#qual'+i),out=$('#qualDisplay'+i);if(out)out.textContent=sel?.value?(master.qualAbbr[sel.value]||sel.value):'未選択'}
